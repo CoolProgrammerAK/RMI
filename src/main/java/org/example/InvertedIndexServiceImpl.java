@@ -91,6 +91,8 @@ public class InvertedIndexServiceImpl extends UnicastRemoteObject implements Inv
 
     public static void main(String args[]) {
         try {
+            String classpath = System.getProperty("java.class.path");
+            System.out.println("Classpath: " + classpath);
             InvertedIndexServiceImpl server = new InvertedIndexServiceImpl();
             LocateRegistry.createRegistry(8099);
             Naming.rebind("//168.138.68.157:8099/InvertedIndexService", server);
