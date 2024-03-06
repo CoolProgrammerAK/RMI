@@ -1,17 +1,13 @@
 //package org.example;
 package org.example;
-import java.io.InputStream;
+import org.example.InvertedIndexService;
+import org.example.*;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
 import java.util.concurrent.*;
-import java.rmi.Remote;
-interface InvertedIndexService extends Remote {
-    Map<String, List<Integer>> getInvertedIndex(String filename) throws RemoteException;
-   }
-   
 
 public class InvertedIndexServiceImpl extends UnicastRemoteObject implements InvertedIndexService {
     private final ForkJoinPool pool;
@@ -25,7 +21,7 @@ public class InvertedIndexServiceImpl extends UnicastRemoteObject implements Inv
 
     @Override
     public Map<String, List<Integer>> getInvertedIndex(String fileName) throws RemoteException {
-        String text = readFileData(fileName);
+        String text = new ReadFile().readFileData(fileName);
         String[] lines = text.split("\n");
 
         // Use fork-join pool to compute inverted index
@@ -36,27 +32,7 @@ public class InvertedIndexServiceImpl extends UnicastRemoteObject implements Inv
 
         return index;
     }
-    public String readFileData(String file){
-        // ReadFile obj = new ReadFile();
 
-        InputStream is = getiostream(file);
-        try (Scanner sc = new Scanner(is).useDelimiter("\\A")) {
-            String rt = sc.hasNext() ? sc.next() : "";
-            return rt;
-        }
-    }
-
-    private InputStream getiostream(final String fileName)
-    {
-        InputStream io = this.getClass()
-                .getClassLoader()
-                .getResourceAsStream(fileName);
-
-        if (io == null) {
-            throw new IllegalArgumentException(fileName + "- NOT FOUND");
-        }
-        return io;
-    }
     private Map<String, List<Integer>> computeInvertedIndexWithExecutors(String[] lines) {
         Map<String, List<Integer>> index = new HashMap<>();
         List<Future<Void>> futures = new ArrayList<>();

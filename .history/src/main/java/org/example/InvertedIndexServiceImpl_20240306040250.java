@@ -1,17 +1,15 @@
-//package org.example;
 package org.example;
-import java.io.InputStream;
+
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
 import java.util.concurrent.*;
-import java.rmi.Remote;
-interface InvertedIndexService extends Remote {
-    Map<String, List<Integer>> getInvertedIndex(String filename) throws RemoteException;
-   }
-   
+
+// Assuming InvertedIndexService and ReadFile are defined in the same package
+import org.example.InvertedIndexService;
+import org.example.ReadFile;
 
 public class InvertedIndexServiceImpl extends UnicastRemoteObject implements InvertedIndexService {
     private final ForkJoinPool pool;
@@ -25,38 +23,15 @@ public class InvertedIndexServiceImpl extends UnicastRemoteObject implements Inv
 
     @Override
     public Map<String, List<Integer>> getInvertedIndex(String fileName) throws RemoteException {
-        String text = readFileData(fileName);
+        String text = new ReadFile().readFileData(fileName);
         String[] lines = text.split("\n");
 
-        // Use fork-join pool to compute inverted index
-//       Map<String, List<Integer>> index = computeInvertedIndexWithForkJoin(lines);
-
         // Use executors with callable to compute inverted index
-         Map<String, List<Integer>> index = computeInvertedIndexWithExecutors(lines);
+        Map<String, List<Integer>> index = computeInvertedIndexWithExecutors(lines);
 
         return index;
     }
-    public String readFileData(String file){
-        // ReadFile obj = new ReadFile();
 
-        InputStream is = getiostream(file);
-        try (Scanner sc = new Scanner(is).useDelimiter("\\A")) {
-            String rt = sc.hasNext() ? sc.next() : "";
-            return rt;
-        }
-    }
-
-    private InputStream getiostream(final String fileName)
-    {
-        InputStream io = this.getClass()
-                .getClassLoader()
-                .getResourceAsStream(fileName);
-
-        if (io == null) {
-            throw new IllegalArgumentException(fileName + "- NOT FOUND");
-        }
-        return io;
-    }
     private Map<String, List<Integer>> computeInvertedIndexWithExecutors(String[] lines) {
         Map<String, List<Integer>> index = new HashMap<>();
         List<Future<Void>> futures = new ArrayList<>();
@@ -65,7 +40,10 @@ public class InvertedIndexServiceImpl extends UnicastRemoteObject implements Inv
         for (int i = 0; i < lines.length; i++) {
             String line = lines[i];
             int lineNumber = i;
-            Future<Void> future = (Future<Void>) executorService.submit(() -> processLine(line, lineNumber, index));
+            Future<Void> future = executorService.submit(() -> {
+                processLine(line, lineNumber, index);
+                return null; // Callable requires a return value
+            });
             futures.add(future);
         }
 
@@ -103,23 +81,10 @@ public class InvertedIndexServiceImpl extends UnicastRemoteObject implements Inv
         }
     }
 
-    private Map<String, List<Integer>> computeInvertedIndexWithForkJoin(String[] lines) {
-        Map<String, List<Integer>> index = new HashMap<>();
-
-        for (int i = 0; i < lines.length; i++) {
-            String line = lines[i];
-            int lineNumber = i;
-            pool.submit(() -> processLine(line, lineNumber, index));
-        }
-
-        pool.awaitQuiescence(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
-        return index;
-    }
-
     public static void main(String args[]) {
         try {
-            String classpath = System.getProperty("java.class.path");
-            System.out.println("Classpath: " + classpath);
+            // String classpath = System.getProperty("java.class.path");
+            // System.out.println("Classpath: " + classpath);
             InvertedIndexServiceImpl server = new InvertedIndexServiceImpl();
             LocateRegistry.createRegistry(8099);
             Naming.rebind("//168.138.68.157:8099/InvertedIndexService", server);

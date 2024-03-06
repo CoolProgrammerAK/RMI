@@ -5,8 +5,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-
-
 public class InvertedIndexClient {
     // Logger for logging errors and information
     private static final Logger logger = Logger.getLogger(InvertedIndexClient.class.getName());
