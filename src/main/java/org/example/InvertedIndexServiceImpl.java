@@ -1,7 +1,5 @@
 //package org.example;
-
-import org.example.InvertedIndexService;
-import org.example.ReadFile;
+package org.example;
 
 import java.rmi.Naming;
 import java.rmi.RemoteException;
