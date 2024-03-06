@@ -11,7 +11,7 @@ public class InvertedIndexClient {
     public static void main(String[] args) {
         try {
             // Remote service endpoint URL
-            String registryEndpoint = "rmi://127.0.0.1:8099/InvertedIndexService";
+            String registryEndpoint = "rmi://168.138.68.157:8099/InvertedIndexService";
             // Look up the remote service
             InvertedIndexService service = (InvertedIndexService) Naming.lookup(registryEndpoint);
             // File name to retrieve the inverted index
